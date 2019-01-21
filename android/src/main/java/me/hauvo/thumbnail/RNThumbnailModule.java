@@ -38,7 +38,7 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void get(String filePath, Promise promise) {
+  public void get(String filePath, ReadableMap options, Promise promise) {
    
     // saveToDir: '.app_thumbs', // "/storage/emulated/0/.app_thumbs/",
     // default "/storage/emulated/0/thumb/"
