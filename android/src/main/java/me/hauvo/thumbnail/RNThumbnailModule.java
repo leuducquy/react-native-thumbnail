@@ -39,22 +39,46 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void get(String filePath, Promise promise) {
+   
+    // saveToDir: '.app_thumbs', // "/storage/emulated/0/.app_thumbs/",
+    // default "/storage/emulated/0/thumb/"
+    // uniqueNames: false, // default same names
+
+    boolean uniqueNames = false;
+    if (options.hasKey("uniqueNames")) {
+      uniqueNames = options.getBoolean("uniqueNames");
+    }
+
+    String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/thumb";
+  
     filePath = filePath.replace("file://","");
     MediaMetadataRetriever retriever = new MediaMetadataRetriever();
     retriever.setDataSource(filePath);
     Bitmap image = retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
 
-    String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/thumb";
-
     try {
+
+      File original = new File(filePath);
+
+      if (options.hasKey("saveToDir")) {
+        fullPath = original.getParent().toString() + "/" + options.getString("saveToDir");
+       
+      }
+
       File dir = new File(fullPath);
       if (!dir.exists()) {
         dir.mkdirs();
       }
 
       OutputStream fOut = null;
-      // String fileName = "thumb-" + UUID.randomUUID().toString() + ".jpeg";
-      String fileName = "thumb-" + UUID.randomUUID().toString() + ".jpeg";
+
+
+      String fileName = original.getName() + ".jpeg";
+
+      if (uniqueNames) {
+        fileName = options.getString("filename") + ".jpg";
+      }
+
       File file = new File(fullPath, fileName);
       file.createNewFile();
       fOut = new FileOutputStream(file);
