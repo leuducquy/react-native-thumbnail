@@ -40,6 +40,7 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void get(String filePath, ReadableMap options, Promise promise) {
    
+     
     // saveToDir: '.app_thumbs', // "/storage/emulated/0/.app_thumbs/",
     // default "/storage/emulated/0/thumb/"
     // uniqueNames: false, // default same names
@@ -61,8 +62,9 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
       File original = new File(filePath);
 
       if (options.hasKey("saveToDir")) {
-        fullPath = original.getParent().toString() + "/" + options.getString("saveToDir");
-       
+        fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + options.getString("saveToDir");
+        Log.v(fullPath, "saveToDir");
+      
       }
 
       File dir = new File(fullPath);
@@ -74,10 +76,11 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
 
 
       String fileName = original.getName() + ".jpeg";
-
-      if (uniqueNames) {
+      if (options.hasKey("filename")) {
         fileName = options.getString("filename") + ".jpg";
+       
       }
+     
 
       File file = new File(fullPath, fileName);
       file.createNewFile();
@@ -91,7 +94,7 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
       // MediaStore.Images.Media.insertImage(reactContext.getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
 
       WritableMap map = Arguments.createMap();
-
+      map.putString("name",fileName);
       map.putString("path", "file://" + fullPath + '/' + fileName);
       map.putDouble("width", image.getWidth());
       map.putDouble("height", image.getHeight());
@@ -102,5 +105,6 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
       Log.e("E_RNThumnail_ERROR", e.getMessage());
       promise.reject("E_RNThumnail_ERROR", e);
     }
+  }
   }
 }
