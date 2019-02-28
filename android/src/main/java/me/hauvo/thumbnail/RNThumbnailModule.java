@@ -37,9 +37,8 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
   public String getName() {
     return "RNThumbnail";
   }
-
   @ReactMethod
-  public void get(String filePath, ReadableMap options, Promise promise) {
+  public void getSaveDir(String filePath, ReadableMap options, Promise promise) {
    
      
     // saveToDir: '.app_thumbs', // "/storage/emulated/0/.app_thumbs/",
@@ -96,6 +95,51 @@ public class RNThumbnailModule extends ReactContextBaseJavaModule {
 
       WritableMap map = Arguments.createMap();
       map.putString("name",fileName);
+      map.putString("path", "file://" + fullPath + '/' + fileName);
+      map.putDouble("width", image.getWidth());
+      map.putDouble("height", image.getHeight());
+
+      promise.resolve(map);
+
+    } catch (Exception e) {
+      Log.e("E_RNThumnail_ERROR", e.getMessage());
+      promise.reject("E_RNThumnail_ERROR", e);
+    }
+  }
+  
+
+
+  @ReactMethod
+  public void get(String filePath, Promise promise) {
+    filePath = filePath.replace("file://","");
+    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+    retriever.setDataSource(filePath);
+    Bitmap image = retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+
+    String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/thumb";
+
+    try {
+      File dir = new File(fullPath);
+      if (!dir.exists()) {
+        dir.mkdirs();
+      }
+
+      OutputStream fOut = null;
+      // String fileName = "thumb-" + UUID.randomUUID().toString() + ".jpeg";
+      String fileName = "thumb-" + UUID.randomUUID().toString() + ".jpeg";
+      File file = new File(fullPath, fileName);
+      file.createNewFile();
+      fOut = new FileOutputStream(file);
+
+      // 100 means no compression, the lower you go, the stronger the compression
+      image.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+      fOut.flush();
+      fOut.close();
+
+      // MediaStore.Images.Media.insertImage(reactContext.getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
+
+      WritableMap map = Arguments.createMap();
+
       map.putString("path", "file://" + fullPath + '/' + fileName);
       map.putDouble("width", image.getWidth());
       map.putDouble("height", image.getHeight());
